@@ -80,7 +80,6 @@ func calculate(str string) (int, bool) {
 	default:
 		panic("Invalid operator. Please use +, -, * or /")
 	}
-
 	return result, flagLatin
 }
 
@@ -118,6 +117,5 @@ func main() {
 		} else {
 			fmt.Println(input, " = ", result)
 		}
-
 	}
 }
