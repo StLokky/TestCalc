@@ -14,27 +14,49 @@ func isNumeric(s string) bool {
 }
 
 func isLatin(s string) bool {
-	if strings.IndexAny(s, "IVX") == -1 {
-		return false
+	validStr := "IVXLCDM"
+	for _, ch := range s {
+		if !strings.ContainsAny(string(ch), validStr) {
+			return false
+		}
 	}
 	return true
 }
 
-var latinNumerals = map[string]int{"I": 1, "II": 2, "III": 3, "IV": 4, "V": 5,
-	"VI": 6, "VII": 7, "VIII": 8, "IX": 9, "X": 10, "XI": 11, "XII": 12, "XIII": 13, "XIV": 14,
-	"XV": 15, "XVI": 16, "XVII": 17, "XVIII": 18, "XIX": 19, "XX": 20}
-
-func lat2Int(s string) int {
-	return latinNumerals[string(s)]
+type IntLat struct {
+	val int
+	lat string
 }
 
-func int2Lat(n int) string {
-	for key, val := range latinNumerals {
-		if val == n {
-			return key
+var arabicNumerals = []IntLat{{1000, "M"}, {900, "CM"}, {500, "D"}, {400, "CD"}, {100, "C"}, {90, "XC"},
+	{50, "L"}, {40, "XL"}, {10, "X"}, {9, "IX"}, {5, "V"}, {4, "IV"}, {1, "I"}}
+
+var latinNumerals = map[string]int{"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
+
+func lat2Int(latin string) int {
+	result := 0
+	temp := 0
+	for i := len(latin) - 1; i >= 0; i-- {
+		value := latinNumerals[string(latin[i])]
+		if value < temp {
+			result -= value
+		} else {
+			result += value
+		}
+		temp = value
+	}
+	return result
+}
+
+func int2Lat(num int) string {
+	result := ""
+	for _, lat := range arabicNumerals {
+		for num >= lat.val {
+			result += lat.lat
+			num -= lat.val
 		}
 	}
-	return "" // Возвращаем пустую строку, если значение не найдено.
+	return result
 }
 
 func calculate(str string) (int, bool) {
@@ -109,7 +131,7 @@ func main() {
 			resultStr = int2Lat(result)
 			switch {
 			case result <= 0:
-				panic("There are no negatives in Latin numerals.....")
+				panic("There are no negatives or zero in Latin numerals.....")
 			case resultStr == "":
 				panic("Wrong expession...")
 			}
