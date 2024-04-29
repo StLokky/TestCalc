@@ -8,11 +8,14 @@ import (
 	"strings"
 )
 
+// Проверяем, является ли аргумент числом. Если strconv.Atoi не вернул ошибку, значит - число
 func isNumeric(s string) bool {
 	_, err := strconv.Atoi(s)
 	return err == nil
 }
 
+// Проверяем, является ли аргумент латинским числом. Если все символы в аргументе принадлежать валидной строке,
+// значит аргумент - латинское число. Не проверяем число на правильность написания (по ТЗ это излишне)
 func isLatin(s string) bool {
 	validStr := "IVXLCDM"
 	for _, ch := range s {
@@ -23,17 +26,10 @@ func isLatin(s string) bool {
 	return true
 }
 
-type IntLat struct {
-	val int
-	lat string
-}
-
-var arabicNumerals = []IntLat{{1000, "M"}, {900, "CM"}, {500, "D"}, {400, "CD"}, {100, "C"}, {90, "XC"},
-	{50, "L"}, {40, "XL"}, {10, "X"}, {9, "IX"}, {5, "V"}, {4, "IV"}, {1, "I"}}
-
-var latinNumerals = map[string]int{"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
-
+// Переводим латинское число в Int. Парсим его с права на на лево. Сохраняем промежуточный результат парсинга.
+// Если следующая литера меньше промежуточного результата, значит она стоит в числе слева, и должна вычитаться...
 func lat2Int(latin string) int {
+	var latinNumerals = map[string]int{"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
 	result := 0
 	temp := 0
 	for i := len(latin) - 1; i >= 0; i-- {
@@ -48,8 +44,21 @@ func lat2Int(latin string) int {
 	return result
 }
 
+// Описываем структуру соответствия арабского числа и латинской литеры.
+// В данном случе невохможно импользовать обычный map , так как нам важен порядок обхода массива
+type IntLat struct {
+	val int
+	lat string
+}
+
+// Переводим арабское число в латинское. Проходимся по массиву, ищем максимальную литеру меньше данного числа,
+// добавляем ее в result столько раз, во сколько число меньше литеры, уменьшаем число на эту литеру необходимое число раз,
+// идем дальше до конца списка...
 func int2Lat(num int) string {
+	var arabicNumerals = [13]IntLat{{1000, "M"}, {900, "CM"}, {500, "D"}, {400, "CD"}, {100, "C"}, {90, "XC"},
+		{50, "L"}, {40, "XL"}, {10, "X"}, {9, "IX"}, {5, "V"}, {4, "IV"}, {1, "I"}}
 	result := ""
+
 	for _, lat := range arabicNumerals {
 		for num >= lat.val {
 			result += lat.lat
@@ -59,6 +68,7 @@ func int2Lat(num int) string {
 	return result
 }
 
+// Вычисляем полученную строку как арифметическое действие
 func calculate(str string) (int, bool) {
 	var result int
 	var flagLatin bool
@@ -74,7 +84,7 @@ func calculate(str string) (int, bool) {
 	num2 := elements[2]
 
 	if !((isNumeric(num1) && isNumeric(num2)) || (isLatin(num1) && isLatin(num2))) {
-		panic("Numbers should be either all Arabic or all Roman numerals")
+		panic("Numbers should be either all Arabic or all Latin numerals")
 	}
 
 	num1Int, _ := strconv.Atoi(num1)
@@ -113,7 +123,8 @@ func main() {
 	fmt.Println("\nProgram 'Console Calculator'.")
 	fmt.Println("Please enter two numbers and an operator separated by spaces.")
 	fmt.Println("You can use Arabic or Latin numerals from 1 to 10")
-	fmt.Println("You can only use operators from this list: '+', '-', '*', '/'\n")
+	fmt.Println("You can only use operators from this list: '+', '-', '*', '/'")
+	fmt.Println("")
 
 	scanner := bufio.NewScanner(os.Stdin)
 
@@ -127,6 +138,7 @@ func main() {
 		}
 
 		result, flagLatin = calculate(input)
+
 		if flagLatin {
 			resultStr = int2Lat(result)
 			switch {
